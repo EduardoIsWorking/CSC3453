@@ -3,6 +3,8 @@
 #include "algFCFS.h"
 #include "queue.h"
 #include "timeutil.h"
+#include "metrics.h"
+#include "printer.h"
 
 // Compare by arrival time, then PID for tie-breaking
 static int cmpArrival(const void *a, const void *b) {
@@ -68,43 +70,22 @@ int runFCFS(PCB *pcbs, int n, const char *outPath) {
     }
 
     // Write results
-    FILE *out = fopen(outPath, "w");
-    if (!out) { free(arr); return 2; }
+    FILE *out = fopen(outPath,"w");
+    if (!out) { queueClear(&fcfsQueue); free(arr); return 2; }
+    printHeaderFCFS(out, n);
 
-    t2_t sumBurst = 0, sumWait = 0, sumTurn = 0, sumResp = 0;
-    for (int k = 0; k < n; k++) {
-        PCB *p = NULL;
-        for (int j = 0; j < n; j++)
-            if (pcbs[k].pid == arr[j].pid) { p = &arr[j]; break; }
-
-        char fbuf[32], wbuf[32], tbuf[32], rbuf[32];
-        formatT2(p->finishT2,    fbuf, sizeof(fbuf));
-        formatT2(p->waitingT2,   wbuf, sizeof(wbuf));
-        formatT2(p->turnaroundT2,tbuf, sizeof(tbuf));
-        formatT2(p->responseT2,  rbuf, sizeof(rbuf));
-
-        fprintf(out,
-            "PID %d  finish=%s  wait=%s  turn=%s  resp=%s  ctx=%d\n",
-            p->pid, fbuf, wbuf, tbuf, rbuf, p->contextCount);
-
-        sumBurst += msToT2(p->burstMs);
-        sumWait  += p->waitingT2;
-        sumTurn  += p->turnaroundT2;
-        sumResp  += p->responseT2;
+    for (int k=0;k<n;k++){
+        PCB *p=NULL;
+        for (int j=0;j<n;j++) if (pcbs[k].pid==arr[j].pid){ p=&arr[j]; break; }
+        finalizeMetrics(p);
+        printProcessLine(out, p);
     }
 
-    char ab[32], aw[32], at[32], ar[32];
-    formatT2(sumBurst / n, ab, sizeof(ab));
-    formatT2(sumWait  / n, aw, sizeof(aw));
-    formatT2(sumTurn  / n, at, sizeof(at));
-    formatT2(sumResp  / n, ar, sizeof(ar));
-
-    fprintf(out,
-        "\nAverages: burst=%s  wait=%s  turn=%s  resp=%s  total_ctx=%d\n",
-        ab, aw, at, ar, sim.totalContext);
-
+    Averages avg;
+    calcAverages(arr, n, sim.totalContext, &avg);
+    printAveragesLine(out, &avg);
     fclose(out);
-    free(arr);
     queueClear(&fcfsQueue);
+    free(arr);
     return 0;
 }

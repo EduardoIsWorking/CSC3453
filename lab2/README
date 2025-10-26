@@ -1,0 +1,46 @@
+Lab 2 — CPU Scheduling Simulator
+--------------------------------
+
+Author: Eduardo Galvez
+Language: C (C17)
+Environment: Linux (tested on Ubuntu via WSL and macOS)
+
+Build Instructions:
+    make        # compiles myscheduler
+    make clean  # removes objects and binary
+
+Full Run Examples:
+    ./myscheduler t10  out_fcfs010.txt  0
+    ./myscheduler t50  out_fcfs050.txt  0
+    ./myscheduler t100 out_fcfs100.txt  0
+
+    ./myscheduler t10  out_rr_q4_010.txt   1 4
+    ./myscheduler t50  out_rr_q4_050.txt   1 4
+    ./myscheduler t100 out_rr_q4_100.txt   1 4
+
+    ./myscheduler t10  out_rr_q16_010.txt  1 16
+    ./myscheduler t50  out_rr_q16_050.txt  1 16
+    ./myscheduler t100 out_rr_q16_100.txt  1 16
+
+    ./myscheduler t10  out_rr_q64_010.txt  1 64
+    ./myscheduler t50  out_rr_q64_050.txt  1 64
+    ./myscheduler t100 out_rr_q64_100.txt  1 64
+
+    ./myscheduler t10  out_srtf010.txt  2
+    ./myscheduler t50  out_srtf050.txt  2
+    ./myscheduler t100 out_srtf100.txt  2
+
+Files:
+    main.c / sim.c,h          — core simulation and data
+    queue.c,h                 — custom queue
+    heap.c,h                  — custom min-heap
+    parser.c,h                — input parser
+    algFCFS.c,h               — First Come First Served
+    algRR.c,h                 — Round Robin
+    algSRTF.c,h               — Shortest Remaining Time First
+    metrics.c,h               — metric calculations
+    printer.c,h               — formatted output
+    timeutil.h                — 0.5 ms time unit helpers
+
+Sample outputs:
+    out_fcfs010.txt, out_rr_q4_010.txt, out_srtf010.txt, etc.

@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include "sim.h"
 #include "queue.h"
+#include "heap.h"
 #include "timeutil.h"
 #include "parser.h"
 #include "algFCFS.h"
+#include "algRR.h"
+#include "algSRTF.h"
 
 static void printUsage(const char *prog) {
     fprintf(stderr,
@@ -26,32 +29,22 @@ int main(int argc, char **argv) {
     if (algo == 1) {
         if (argc < 5) { printUsage(argv[0]); return 1; }
         quantumMs = atoi(argv[4]);
-        if (quantumMs <= 0) {
-            fprintf(stderr, "quantum must be > 0\n");
-            return 1;
-        }
+        if (quantumMs <= 0) { fprintf(stderr, "quantum must be > 0\n"); return 1; }
     }
 
-    PCB *pcbs = NULL;
-    int n = 0;
+    PCB *pcbs = NULL; int n = 0;
     int parseErr = parseInput(inPath, &pcbs, &n);
-    if (parseErr != 0) {
-        fprintf(stderr, "Input parse error (%d)\n", parseErr);
-        return 1;
-    }
+    if (parseErr != 0) { fprintf(stderr, "Input parse error (%d)\n", parseErr); return 1; }
 
     int rc = 0;
     if (algo == 0) {
         rc = runFCFS(pcbs, n, outPath);
     } else if (algo == 1) {
-        fprintf(stderr, "Round Robin not implemented yet\n");
-        rc = 3;
+        rc = runRR(pcbs, n, outPath, quantumMs);
     } else if (algo == 2) {
-        fprintf(stderr, "SRTF not implemented yet\n");
-        rc = 4;
+    rc = runSRTF(pcbs, n, outPath);
     } else {
-        printUsage(argv[0]);
-        rc = 2;
+        printUsage(argv[0]); rc = 2;
     }
 
     free(pcbs);
